@@ -1,0 +1,108 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.Random;
+
+public class ReactionTimeApp {
+
+    private static int clickCount = 0;
+    private static final Random random = new Random();
+    private static final int PANEL_WIDTH = 600;
+    private static final int PANEL_HEIGHT = 400;
+    private static final int GAME_DURATION_MS = 60000; // 1 minute
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Reaction Button Game");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(PANEL_WIDTH, PANEL_HEIGHT);
+        frame.setLocationRelativeTo(null); // Center the frame
+
+        // Start Panel with Difficulty Options
+        JPanel startPanel = new JPanel(null) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setFont(new Font("SansSerif", Font.BOLD, 32));
+                g2d.setColor(new Color(10, 10, 10));
+                g2d.drawString("Choose your difficulty", 100, 200);
+            }
+        };
+
+        JButton easyButton = new JButton("Easy");
+        JButton intermediateButton = new JButton("Intermediate");
+        JButton hardButton = new JButton("Hard");
+
+        easyButton.setBounds(100, 100, 120, 50);
+        intermediateButton.setBounds(240, 100, 140, 50);
+        hardButton.setBounds(400, 100, 120, 50);
+
+        startPanel.add(easyButton);
+        startPanel.add(intermediateButton);
+        startPanel.add(hardButton);
+
+        frame.setContentPane(startPanel);
+        frame.setVisible(true);
+
+        ActionListener startGame = e -> {
+            int delay;
+            if (e.getSource() == easyButton) {
+                delay = 1000;
+            } else if (e.getSource() == intermediateButton) {
+                delay = 500;
+            } else {
+                delay = 250;
+            }
+
+            clickCount = 0;
+
+            // Game panel with no background text
+            JPanel gamePanel = new JPanel(null);
+            frame.setContentPane(gamePanel);
+            frame.revalidate();
+
+            JButton gameButton = new JButton("Click Me!");
+            gameButton.setBounds(100, 100, 120, 50);
+            gamePanel.add(gameButton);
+
+            JLabel countLabel = new JLabel("Clicks: 0");
+            countLabel.setBounds(10, 10, 120, 30);
+            countLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+            gamePanel.add(countLabel);
+
+            Timer moveTimer = new Timer(delay, null);
+            moveTimer.addActionListener(ev -> moveButton(gameButton, gamePanel));
+            moveTimer.start();
+
+            gameButton.addActionListener(ev -> {
+                clickCount++;
+                countLabel.setText("Clicks: " + clickCount);
+                moveButton(gameButton, gamePanel);
+            });
+
+            new Timer(GAME_DURATION_MS, ev -> {
+                moveTimer.stop();
+                gameButton.setEnabled(false);
+                JOptionPane.showMessageDialog(frame,
+                        "Time's up! Your score: " + clickCount,
+                        "Game Over",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }).start();
+        };
+
+        easyButton.addActionListener(startGame);
+        intermediateButton.addActionListener(startGame);
+        hardButton.addActionListener(startGame);
+    }
+
+    private static void moveButton(JButton button, JPanel panel) {
+        int buttonWidth = button.getWidth();
+        int buttonHeight = button.getHeight();
+        int maxX = panel.getWidth() - buttonWidth;
+        int maxY = panel.getHeight() - buttonHeight;
+
+        int x = random.nextInt(Math.max(maxX, 1));
+        int y = random.nextInt(Math.max(maxY, 1));
+        button.setLocation(x, y);
+    }
+}
