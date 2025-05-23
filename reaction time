@@ -15,84 +15,60 @@ public class ReactionTimeApp {
         JFrame frame = new JFrame("Reaction Button Game");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(PANEL_WIDTH, PANEL_HEIGHT);
-        frame.setLocationRelativeTo(null); // Center the frame
 
-        // Start Panel with Difficulty Options
-        JPanel startPanel = new JPanel(null) {
+        // Custom JPanel with background message
+        JPanel panel = new JPanel(null) {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setFont(new Font("SansSerif", Font.BOLD, 32));
-                g2d.setColor(new Color(10, 10, 10));
-                g2d.drawString("Choose your difficulty", 100, 200);
+                g2d.setColor(new Color(10, 10, 10)); // Dark, tempting color
+                g2d.drawString("I bet you can't click me", 100, 200);
             }
         };
 
-        JButton easyButton = new JButton("Easy");
-        JButton intermediateButton = new JButton("Intermediate");
-        JButton hardButton = new JButton("Hard");
+        frame.add(panel);
 
-        easyButton.setBounds(100, 100, 120, 50);
-        intermediateButton.setBounds(240, 100, 140, 50);
-        hardButton.setBounds(400, 100, 120, 50);
+        // Clickable button
+        JButton button = new JButton("Click Me!");
+        button.setBounds(100, 100, 120, 50);
+        panel.add(button);
 
-        startPanel.add(easyButton);
-        startPanel.add(intermediateButton);
-        startPanel.add(hardButton);
+        // Click count label
+        JLabel countLabel = new JLabel("Clicks: 0");
+        countLabel.setBounds(10, 10, 120, 30);
+        countLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        panel.add(countLabel);
 
-        frame.setContentPane(startPanel);
-        frame.setVisible(true);
+        // Timer to move button every second
+        Timer moveTimer = new Timer(1000, null);
 
-        ActionListener startGame = e -> {
-            int delay;
-            if (e.getSource() == easyButton) {
-                delay = 1000;
-            } else if (e.getSource() == intermediateButton) {
-                delay = 500;
-            } else {
-                delay = 250;
-            }
-
-            clickCount = 0;
-
-            // Game panel with no background text
-            JPanel gamePanel = new JPanel(null);
-            frame.setContentPane(gamePanel);
-            frame.revalidate();
-
-            JButton gameButton = new JButton("Click Me!");
-            gameButton.setBounds(100, 100, 120, 50);
-            gamePanel.add(gameButton);
-
-            JLabel countLabel = new JLabel("Clicks: 0");
-            countLabel.setBounds(10, 10, 120, 30);
-            countLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
-            gamePanel.add(countLabel);
-
-            Timer moveTimer = new Timer(delay, null);
-            moveTimer.addActionListener(ev -> moveButton(gameButton, gamePanel));
-            moveTimer.start();
-
-            gameButton.addActionListener(ev -> {
+        // Button click logic
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
                 clickCount++;
                 countLabel.setText("Clicks: " + clickCount);
-                moveButton(gameButton, gamePanel);
-            });
+                moveButton(button, panel);
+            }
+        });
 
-            new Timer(GAME_DURATION_MS, ev -> {
-                moveTimer.stop();
-                gameButton.setEnabled(false);
-                JOptionPane.showMessageDialog(frame,
-                        "Time's up! Your score: " + clickCount,
-                        "Game Over",
-                        JOptionPane.INFORMATION_MESSAGE);
-            }).start();
-        };
+        // Move button automatically every second
+        moveTimer.addActionListener(e -> moveButton(button, panel));
+        moveTimer.start();
 
-        easyButton.addActionListener(startGame);
-        intermediateButton.addActionListener(startGame);
-        hardButton.addActionListener(startGame);
+        // Timer to stop game after 1 minute
+        new Timer(GAME_DURATION_MS, e -> {
+            moveTimer.stop();
+            button.setEnabled(false);
+            JOptionPane.showMessageDialog(frame,
+                    "Time's up! Your score: " + clickCount,
+                    "Game Over",
+                    JOptionPane.INFORMATION_MESSAGE);
+        }).start();
+
+        frame.setVisible(true);
     }
 
     private static void moveButton(JButton button, JPanel panel) {
